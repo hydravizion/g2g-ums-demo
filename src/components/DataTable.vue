@@ -155,7 +155,7 @@
   }
 
   function onClickEdit(id: string) {
-    exportToCSV(sortedAndFilteredData.value, 'users.csv')
+    router.push(`/edit-user/${id}`)
   }
 
   async function onClickDelete(user: User) {
@@ -229,7 +229,7 @@
         </div>
 
         <div class="text-sm text-blue-600">
-          <a href="#" class="mr-2">Edit</a>|
+          <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
           <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>
         <div class="shrink-0 w-64 h-40">
@@ -258,7 +258,7 @@
         <div class="text-sm text-gray-500 mt-2">Created {{ timeAgo(row.created_at) }}</div>
         <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
         <div class="mt-2 text-sm text-blue-600">
-          <a href="#" class="mr-2">Edit</a>|
+          <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
           <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>
       </div>
