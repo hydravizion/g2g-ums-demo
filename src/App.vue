@@ -3,15 +3,15 @@
 </script>
 
 <template>
-  <div class="app-container">
-    <TopBar />
-    <router-view />
+  <div class="h-screen flex flex-col overflow-hidden">
+    <div class="sticky top-0 z-10">
+      <TopBar />
+    </div>
+
+    <div class="flex-1 overflow-y-auto">
+      <router-view />
+    </div>
   </div>
 </template>
 
-<style scoped>
-  .app-container {
-    @apply flex flex-col w-screen h-screen overflow-auto;
-    background-color: #4a739c06;
-  }
-</style>
+<style scoped></style>

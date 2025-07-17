@@ -1,6 +1,6 @@
 <script setup lang="ts"></script>
 <template>
-  <div class="flex flex-row h-16 border-b border-gray-200">
+  <div class="flex flex-row h-16 border-b border-gray-200 shrink-0">
     <div class="flex justify-start items-center px-10 w-1/2">
       <p class="font-bold text-lg">User Management System</p>
     </div>

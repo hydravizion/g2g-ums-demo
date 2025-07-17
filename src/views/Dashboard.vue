@@ -66,10 +66,6 @@
         { label: 'Email', key: 'email' },
       ]"
     >
-      <!-- Slot for profile picture column -->
-      <template #cell-profilePicture="{ value }">
-        <img :src="value" class="h-10 w-10 rounded-full object-cover" />
-      </template>
     </DataTable>
   </div>
 </template>

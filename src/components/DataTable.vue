@@ -4,6 +4,7 @@
     <div class="flex justify-end items-center space-x-2">
       <div
         class="border border-gray-400 px-5 py-2 rounded-full text-sm cursor-pointer mr-auto hover:bg-green-200 hover:border-green-500 transition"
+        @click="exportCSV"
       >
         Export To CSV
       </div>
@@ -263,6 +264,8 @@
 
     return result.slice(start.value, end.value)
   })
+
+  const exportCSV = async () => {}
 </script>
 
 <style scoped></style>
