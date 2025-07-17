@@ -38,7 +38,7 @@
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4"
+        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
       >
         <div class="flex flex-col text-start px-10">
           <div class="font-semibold text-lg">{{ row.name }}</div>
@@ -67,15 +67,17 @@
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="rounded-2xl bg-[#f7d5c3] text-center cursor-pointer pb-2"
+        class="text-center p-2 rounded-2xl hover:bg-gray-100 transition"
       >
-        <img :src="row['picture']" class="mx-auto mb-2 w-full h-40 rounded-t-2xl object-cover" />
+        <div class="bg-[#cdefff] p-5 rounded-2xl mb-2">
+          <img :src="row['picture']" class="mx-auto rounded-full h-full w-full object-cover" />
+        </div>
         <div class="font-semibold text-lg">{{ row.name }}</div>
-        <div class="text-sm text-gray-700">{{ row.email }}</div>
-        <div class="text-sm text-gray-700">Born at {{ row.dob }}</div>
-        <div class="text-sm text-gray-700">{{ row.gender }}</div>
-        <div class="text-sm text-gray-700 mt-2">Created {{ row.created_at }}</div>
-        <div class="text-sm text-gray-700">Last updated {{ row.updated_at }}</div>
+        <div class="text-sm text-gray-500">{{ row.email }}</div>
+        <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
+        <div class="text-sm text-gray-500">{{ row.gender }}</div>
+        <div class="text-sm text-gray-500 mt-2">Created {{ row.created_at }}</div>
+        <div class="text-sm text-gray-500">Last updated {{ row.updated_at }}</div>
         <div class="mt-2 text-sm text-blue-600">
           <a href="#" class="mr-2">Edit</a>|
           <a href="#" class="ml-2 text-red-600">Delete</a>
