@@ -3,6 +3,7 @@
   import { User } from '../interfaces/user'
   import { formatDistanceToNow } from 'date-fns'
   import { exportToCSV } from '../utils'
+  import { deleteUser } from '../services/firebase'
 
   type Column = {
     label: string
@@ -152,6 +153,19 @@
     exportToCSV(sortedAndFilteredData.value, 'users.csv')
   }
 
+  function onClickEdit(id: string) {
+    exportToCSV(sortedAndFilteredData.value, 'users.csv')
+  }
+
+  async function onClickDelete(user: User) {
+    if (
+      confirm(
+        `Are you sure you want to delete this user? - ${user.name} (The data will be lost forever!)`
+      )
+    )
+      await deleteUser(user.id)
+  }
+
   const timeAgo = (dateString: string | Date): string => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true })
   }
@@ -210,7 +224,7 @@
 
         <div class="text-sm text-blue-600">
           <a href="#" class="mr-2">Edit</a>|
-          <a href="#" class="ml-2 text-red-600">Delete</a>
+          <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>
         <div class="shrink-0 w-64 h-40">
           <img :src="row['picture']" class="w-full h-full rounded-r-2xl object-cover" />
@@ -239,7 +253,7 @@
         <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
         <div class="mt-2 text-sm text-blue-600">
           <a href="#" class="mr-2">Edit</a>|
-          <a href="#" class="ml-2 text-red-600">Delete</a>
+          <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>
       </div>
     </div>
