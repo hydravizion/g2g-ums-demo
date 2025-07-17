@@ -4,6 +4,7 @@
   import { formatDistanceToNow } from 'date-fns'
   import { exportToCSV } from '../utils'
   import { deleteUser } from '../services/firebase'
+  import router from '../router/router'
 
   type Column = {
     label: string
@@ -163,7 +164,12 @@
         `Are you sure you want to delete this user? - ${user.name} (The data will be lost forever!)`
       )
     )
-      await deleteUser(user.id)
+      try {
+        await deleteUser(user.id)
+        router.go(0)
+      } catch (error) {
+        alert(error)
+      }
   }
 
   const timeAgo = (dateString: string | Date): string => {
