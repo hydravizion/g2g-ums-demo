@@ -11,7 +11,9 @@
 <template>
   <div class="flex flex-col justify-center py-10 px-40 gap-y-5">
     <p class="font-bold text-2xl">User List</p>
-    <div class="flex flex-row w-full h-10 rounded-lg p-1 justify-center items-center bg-gray-300">
+    <div
+      class="flex flex-row w-full h-10 rounded-lg p-1 gap-x-2 justify-center items-center bg-gray-300"
+    >
       <div
         class="view-selector rounded-lg bg-transparent hover:bg-gray-100"
         :class="{ 'bg-white': currentViewType === 'list' }"
@@ -43,18 +45,18 @@
           email: 'ethan.harper@example.com',
           dob: '1990-05-15',
           gender: 'Male',
-          profilePicture: 'https://i.pravatar.cc/100?img=1',
-          createdAt: '2 minutes ago',
-          updatedAt: '2 minutes ago',
+          picture: 'https://i.pravatar.cc/100?img=1',
+          created_at: '2 minutes ago',
+          updated_at: '2 minutes ago',
         },
         {
           name: 'Olivia Bennett',
           email: 'olivia.bennett@example.com',
           dob: '1988-12-20',
           gender: 'Female',
-          profilePicture: 'https://i.pravatar.cc/100?img=2',
-          createdAt: '5 minutes ago',
-          updatedAt: '5 minutes ago',
+          picture: 'https://i.pravatar.cc/100?img=2',
+          created_at: '5 minutes ago',
+          updated_at: '5 minutes ago',
         },
       ]"
       :rows-per-page="3"

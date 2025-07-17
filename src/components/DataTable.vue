@@ -7,15 +7,24 @@
       >
         Export To CSV
       </div>
+      <select
+        v-model="selectedSortKey"
+        class="border border-gray-400 px-3 py-2 rounded-full text-sm mx-auto"
+      >
+        <option v-for="col in sortTypes" :key="col.key + col.order" :value="col">
+          {{ col.label }}
+        </option>
+      </select>
       <label class="text-sm">Search by:</label>
       <select
         v-model="selectedFilterKey"
         class="border border-gray-400 px-3 py-2 rounded-full text-sm"
       >
-        <option v-for="col in filterableColumns" :key="col.key" :value="col.key">
+        <option v-for="col in filterTypes" :key="col.key" :value="col">
           {{ col.label }}
         </option>
       </select>
+
       <input
         v-model="searchTerm"
         type="text"
@@ -25,42 +34,29 @@
     </div>
 
     <!-- List View -->
-    <div v-if="viewType === 'list'" class="overflow-x-auto rounded-md border border-gray-200">
-      <table class="min-w-full table-auto text-left">
-        <thead class="h-16">
-          <tr>
-            <th
-              v-for="column in columns"
-              :key="column.key"
-              @click="sortBy(column.key)"
-              class="cursor-pointer p-3 text-sm font-semibold text-gray-700 hover:bg-gray-200"
-            >
-              {{ column.label }}
-              <span v-if="sort.key === column.key">
-                {{ sort.asc ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th class="p-3 text-sm font-semibold text-gray-700">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(row, index) in paginatedData"
-            :key="index"
-            class="border-t border-gray-200 hover:bg-gray-50"
-          >
-            <td v-for="column in columns" :key="column.key" class="p-3">
-              <slot :name="`cell-${column.key}`" :value="row[column.key]" :row="row">
-                {{ row[column.key] }}
-              </slot>
-            </td>
-            <td class="p-3 text-blue-600">
-              <a href="#" class="mr-2">Edit</a>|
-              <a href="#" class="ml-2 text-red-600">Delete</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="viewType === 'list'" class="flex flex-col gap-y-6 overflow-x-auto rounded-md">
+      <div
+        v-for="(row, index) in paginatedData"
+        :key="index"
+        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4"
+      >
+        <div class="flex flex-col text-start px-10">
+          <div class="font-semibold text-lg">{{ row.name }}</div>
+          <div class="text-sm text-gray-500">{{ row.email }}</div>
+          <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
+          <div class="text-sm text-gray-500">{{ row.gender }}</div>
+          <div class="text-sm text-gray-500">Created {{ row.created_at }}</div>
+          <div class="text-sm text-gray-500">Last updated {{ row.updated_at }}</div>
+        </div>
+
+        <div class="text-sm text-blue-600">
+          <a href="#" class="mr-2">Edit</a>|
+          <a href="#" class="ml-2 text-red-600">Delete</a>
+        </div>
+        <div class="shrink-0 w-64 h-40">
+          <img :src="row['picture']" class="w-full h-full rounded-r-2xl object-cover" />
+        </div>
+      </div>
     </div>
 
     <!-- Grid View -->
@@ -71,17 +67,15 @@
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="rounded-lg bg-[#f7d5c3] p-4 text-center cursor-pointer"
+        class="rounded-2xl bg-[#f7d5c3] text-center cursor-pointer pb-2"
       >
-        <slot name="cell-profilePicture" :value="row['profilePicture']" :row="row">
-          <img
-            :src="row['profilePicture']"
-            class="mx-auto mb-2 h-28 w-28 rounded-full object-cover"
-          />
-        </slot>
+        <img :src="row['picture']" class="mx-auto mb-2 w-full h-40 rounded-t-2xl object-cover" />
         <div class="font-semibold text-lg">{{ row.name }}</div>
         <div class="text-sm text-gray-700">{{ row.email }}</div>
-        <div class="text-sm text-gray-700">{{ row.gender }}, Born {{ row.dob.split('-')[0] }}</div>
+        <div class="text-sm text-gray-700">Born at {{ row.dob }}</div>
+        <div class="text-sm text-gray-700">{{ row.gender }}</div>
+        <div class="text-sm text-gray-700 mt-2">Created {{ row.created_at }}</div>
+        <div class="text-sm text-gray-700">Last updated {{ row.updated_at }}</div>
         <div class="mt-2 text-sm text-blue-600">
           <a href="#" class="mr-2">Edit</a>|
           <a href="#" class="ml-2 text-red-600">Delete</a>
@@ -117,43 +111,111 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
 
+  type User = {
+    name: string
+    email: string
+    dob: string
+    gender: string
+    picture: string
+    created_at: string
+    updated_at: string
+  }
+
   type Column = {
     label: string
     key: string
+    order?: boolean
   }
 
   const props = defineProps<{
-    columns: Column[]
-    data: Record<string, any>[]
-    filterableColumns: Column[]
+    data: User[]
     viewType: 'list' | 'grid'
     rowsPerPage?: number
   }>()
 
-  // Sorting
-  const sort = ref<{ key: string; asc: boolean }>({
-    key: props.columns[0]?.key || '',
-    asc: true,
-  })
+  const sortTypes = ref<Column[]>([
+    {
+      label: 'Name Asc',
+      key: 'name',
+      order: true,
+    },
+    {
+      label: 'Name Desc',
+      key: 'name',
+      order: false,
+    },
+    {
+      label: 'Email Asc',
+      key: 'email',
+      order: true,
+    },
+    {
+      label: 'Email Desc',
+      key: 'email',
+      order: false,
+    },
+    {
+      label: 'Gender Asc',
+      key: 'gender',
+      order: true,
+    },
+    {
+      label: 'Gender Desc',
+      key: 'gender',
+      order: false,
+    },
+    {
+      label: 'Birth Asc',
+      key: 'dob',
+      order: true,
+    },
+    {
+      label: 'Birth Desc',
+      key: 'dob',
+      order: false,
+    },
+    {
+      label: 'Recently Created',
+      key: 'created_at',
+      order: true,
+    },
+    {
+      label: 'Oldest Created',
+      key: 'created_at',
+      order: false,
+    },
+    {
+      label: 'Recently Updated',
+      key: 'updated_at',
+      order: true,
+    },
+    {
+      label: 'Oldest Updated',
+      key: 'updated_at',
+      order: false,
+    },
+  ])
 
-  const sortBy = (key: string) => {
-    if (sort.value.key === key) {
-      sort.value.asc = !sort.value.asc
-    } else {
-      sort.value.key = key
-      sort.value.asc = true
-    }
-  }
-
+  const filterTypes = ref<Column[]>([
+    {
+      label: 'Name',
+      key: 'name',
+    },
+    {
+      label: 'Email',
+      key: 'email',
+    },
+  ])
   // Filtering
-  const selectedFilterKey = ref<string>(props.filterableColumns[0]?.key || '')
+  const selectedSortKey = ref<Column>(sortTypes.value[0])
+  const selectedFilterKey = ref<Column>(filterTypes.value[0])
   const searchTerm = ref<string>('')
 
   const filteredData = computed(() => {
     if (!searchTerm.value || !selectedFilterKey.value) return props.data
 
     return props.data.filter((row) => {
-      const val = row[selectedFilterKey.value]
+      const val = row[selectedFilterKey.value.key]
       return String(val).toLowerCase().includes(searchTerm.value.toLowerCase())
     })
   })
@@ -165,24 +227,40 @@
   const start = computed(() => (currentPage.value - 1) * rowsPerPage.value)
   const end = computed(() => Math.min(start.value + rowsPerPage.value, filteredData.value.length))
 
-  const sortedData = computed(() => {
-    return [...filteredData.value].sort((a, b) => {
-      const valA = a[sort.value.key]
-      const valB = b[sort.value.key]
+  // Final mutated data
+  const paginatedData = computed(() => {
+    let result = [...filteredData.value]
 
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return sort.value.asc ? valA.localeCompare(valB) : valB.localeCompare(valA)
-      }
-      return 0
-    })
+    if (selectedSortKey.value) {
+      const { key, order } = selectedSortKey.value
+
+      result.sort((a, b) => {
+        const aVal = a[key]
+        const bVal = b[key]
+
+        if (aVal == null) return order ? -1 : 1
+        if (bVal == null) return order ? 1 : -1
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return order ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+        }
+
+        return order
+          ? aVal > bVal
+            ? 1
+            : aVal < bVal
+              ? -1
+              : 0
+          : aVal < bVal
+            ? 1
+            : aVal > bVal
+              ? -1
+              : 0
+      })
+    }
+
+    return result.slice(start.value, end.value)
   })
-
-  const paginatedData = computed(() => sortedData.value.slice(start.value, end.value))
 </script>
 
-<style scoped>
-  th,
-  td {
-    white-space: nowrap;
-  }
-</style>
+<style scoped></style>
