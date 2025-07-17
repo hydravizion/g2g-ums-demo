@@ -1,12 +1,24 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { onMounted, ref } from 'vue'
   import DataTable from '../components/DataTable.vue'
+  import { User } from '../interfaces/user'
+  import { getAllUsers } from '../services/firebase'
 
+  const userList = ref<User[]>([])
   const currentViewType = ref<'list' | 'grid'>('list')
 
   function changeViewType(type: 'list' | 'grid') {
     currentViewType.value = type
   }
+
+  onMounted(async () => {
+    try {
+      const userRes = await getAllUsers()
+      userList.value = userRes
+    } catch (error) {
+      alert(error)
+    }
+  })
 </script>
 <template>
   <div class="flex flex-col justify-center py-10 px-40 gap-y-5">
@@ -39,27 +51,8 @@
         { label: 'Created At', key: 'createdAt' },
         { label: 'Updated At', key: 'updatedAt' },
       ]"
-      :data="[
-        {
-          name: 'Ethan Harper',
-          email: 'ethan.harper@example.com',
-          dob: '1990-05-15',
-          gender: 'Male',
-          picture: 'https://i.pravatar.cc/100?img=1',
-          created_at: '2 minutes ago',
-          updated_at: '2 minutes ago',
-        },
-        {
-          name: 'Olivia Bennett',
-          email: 'olivia.bennett@example.com',
-          dob: '1988-12-20',
-          gender: 'Female',
-          picture: 'https://i.pravatar.cc/100?img=2',
-          created_at: '5 minutes ago',
-          updated_at: '5 minutes ago',
-        },
-      ]"
-      :rows-per-page="3"
+      :data="userList"
+      :rows-per-page="4"
       :view-type="currentViewType"
       :filterable-columns="[
         { label: 'Name', key: 'name' },

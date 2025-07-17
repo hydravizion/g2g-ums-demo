@@ -1,128 +1,8 @@
-<template>
-  <div class="space-y-4">
-    <!-- Search & Filter -->
-    <div class="flex justify-end items-center space-x-2">
-      <div
-        class="border border-gray-400 px-5 py-2 rounded-full text-sm cursor-pointer mr-auto hover:bg-green-200 hover:border-green-500 transition"
-        @click="exportCSV"
-      >
-        Export To CSV
-      </div>
-      <select
-        v-model="selectedSortKey"
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm mx-auto"
-      >
-        <option v-for="col in sortTypes" :key="col.key + col.order" :value="col">
-          {{ col.label }}
-        </option>
-      </select>
-      <label class="text-sm">Search by:</label>
-      <select
-        v-model="selectedFilterKey"
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
-      >
-        <option v-for="col in filterTypes" :key="col.key" :value="col">
-          {{ col.label }}
-        </option>
-      </select>
-
-      <input
-        v-model="searchTerm"
-        type="text"
-        placeholder="Search..."
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
-      />
-    </div>
-
-    <!-- List View -->
-    <div v-if="viewType === 'list'" class="flex flex-col gap-y-6 overflow-x-auto rounded-md">
-      <div
-        v-for="(row, index) in paginatedData"
-        :key="index"
-        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
-      >
-        <div class="flex flex-col text-start px-10">
-          <div class="font-semibold text-lg">{{ row.name }}</div>
-          <div class="text-sm text-gray-500">{{ row.email }}</div>
-          <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
-          <div class="text-sm text-gray-500">{{ row.gender }}</div>
-          <div class="text-sm text-gray-500">Created {{ row.created_at }}</div>
-          <div class="text-sm text-gray-500">Last updated {{ row.updated_at }}</div>
-        </div>
-
-        <div class="text-sm text-blue-600">
-          <a href="#" class="mr-2">Edit</a>|
-          <a href="#" class="ml-2 text-red-600">Delete</a>
-        </div>
-        <div class="shrink-0 w-64 h-40">
-          <img :src="row['picture']" class="w-full h-full rounded-r-2xl object-cover" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Grid View -->
-    <div
-      v-else-if="viewType === 'grid'"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-    >
-      <div
-        v-for="(row, index) in paginatedData"
-        :key="index"
-        class="text-center p-2 rounded-2xl hover:bg-gray-100 transition"
-      >
-        <div class="bg-[#cdefff] p-5 rounded-2xl mb-2">
-          <img :src="row['picture']" class="mx-auto rounded-full h-full w-full object-cover" />
-        </div>
-        <div class="font-semibold text-lg">{{ row.name }}</div>
-        <div class="text-sm text-gray-500">{{ row.email }}</div>
-        <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
-        <div class="text-sm text-gray-500">{{ row.gender }}</div>
-        <div class="text-sm text-gray-500 mt-2">Created {{ row.created_at }}</div>
-        <div class="text-sm text-gray-500">Last updated {{ row.updated_at }}</div>
-        <div class="mt-2 text-sm text-blue-600">
-          <a href="#" class="mr-2">Edit</a>|
-          <a href="#" class="ml-2 text-red-600">Delete</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex justify-between items-center">
-      <div class="text-sm text-gray-600">
-        Showing {{ start + 1 }} to {{ end }} of {{ filteredData.length }} entries
-      </div>
-      <div class="space-x-2">
-        <button
-          @click="currentPage--"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          @click="currentPage++"
-          :disabled="end >= filteredData.length"
-          class="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
   import { computed, ref } from 'vue'
-
-  type User = {
-    name: string
-    email: string
-    dob: string
-    gender: string
-    picture: string
-    created_at: string
-    updated_at: string
-  }
+  import { User } from '../interfaces/user'
+  import { formatDistanceToNow } from 'date-fns'
+  import { exportToCSV } from '../utils'
 
   type Column = {
     label: string
@@ -180,22 +60,22 @@
     {
       label: 'Recently Created',
       key: 'created_at',
-      order: true,
+      order: false,
     },
     {
       label: 'Oldest Created',
       key: 'created_at',
-      order: false,
+      order: true,
     },
     {
       label: 'Recently Updated',
       key: 'updated_at',
-      order: true,
+      order: false,
     },
     {
       label: 'Oldest Updated',
       key: 'updated_at',
-      order: false,
+      order: true,
     },
   ])
 
@@ -230,8 +110,7 @@
   const start = computed(() => (currentPage.value - 1) * rowsPerPage.value)
   const end = computed(() => Math.min(start.value + rowsPerPage.value, filteredData.value.length))
 
-  // Final mutated data
-  const paginatedData = computed(() => {
+  const sortedAndFilteredData = computed(() => {
     let result = [...filteredData.value]
 
     if (selectedSortKey.value) {
@@ -262,10 +141,132 @@
       })
     }
 
-    return result.slice(start.value, end.value)
+    return result
   })
 
-  const exportCSV = async () => {}
+  const paginatedData = computed(() => {
+    return sortedAndFilteredData.value.slice(start.value, end.value)
+  })
+
+  function handleExportCSV() {
+    exportToCSV(sortedAndFilteredData.value, 'users.csv')
+  }
+
+  const timeAgo = (dateString: string | Date): string => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+  }
 </script>
+<template>
+  <div class="space-y-4">
+    <!-- Search & Filter -->
+    <div class="flex justify-end items-center space-x-2">
+      <div
+        class="border border-gray-400 px-5 py-2 rounded-full text-sm cursor-pointer mr-auto hover:bg-green-200 hover:border-green-500 transition"
+        @click="handleExportCSV"
+      >
+        Export To CSV
+      </div>
+      <select
+        v-model="selectedSortKey"
+        class="border border-gray-400 px-3 py-2 rounded-full text-sm mx-auto"
+      >
+        <option v-for="col in sortTypes" :key="col.key + col.order" :value="col">
+          {{ col.label }}
+        </option>
+      </select>
+      <label class="text-sm">Search by:</label>
+      <select
+        v-model="selectedFilterKey"
+        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
+      >
+        <option v-for="col in filterTypes" :key="col.key" :value="col">
+          {{ col.label }}
+        </option>
+      </select>
+
+      <input
+        v-model="searchTerm"
+        type="text"
+        placeholder="Search..."
+        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
+      />
+    </div>
+
+    <!-- List View -->
+    <div v-if="viewType === 'list'" class="flex flex-col gap-y-6 overflow-x-auto rounded-md">
+      <div
+        v-for="(row, index) in paginatedData"
+        :key="index"
+        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
+      >
+        <div class="flex flex-col text-start px-10">
+          <div class="font-semibold text-lg">{{ row.name }}</div>
+          <div class="text-sm text-gray-500">{{ row.email }}</div>
+          <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
+          <div class="text-sm text-gray-500">{{ row.gender }}</div>
+          <div class="text-sm text-gray-500">Created {{ timeAgo(row.created_at) }}</div>
+          <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
+        </div>
+
+        <div class="text-sm text-blue-600">
+          <a href="#" class="mr-2">Edit</a>|
+          <a href="#" class="ml-2 text-red-600">Delete</a>
+        </div>
+        <div class="shrink-0 w-64 h-40">
+          <img :src="row['picture']" class="w-full h-full rounded-r-2xl object-cover" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid View -->
+    <div
+      v-else-if="viewType === 'grid'"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+      <div
+        v-for="(row, index) in paginatedData"
+        :key="index"
+        class="text-center p-2 rounded-2xl hover:bg-gray-100 transition"
+      >
+        <div class="bg-[#cdefff] p-5 rounded-2xl mb-2">
+          <img :src="row['picture']" class="mx-auto rounded-full h-full w-full object-cover" />
+        </div>
+        <div class="font-semibold text-lg">{{ row.name }}</div>
+        <div class="text-sm text-gray-500">{{ row.email }}</div>
+        <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
+        <div class="text-sm text-gray-500">{{ row.gender }}</div>
+        <div class="text-sm text-gray-500 mt-2">Created {{ timeAgo(row.created_at) }}</div>
+        <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
+        <div class="mt-2 text-sm text-blue-600">
+          <a href="#" class="mr-2">Edit</a>|
+          <a href="#" class="ml-2 text-red-600">Delete</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center">
+      <div class="text-sm text-gray-600">
+        Showing {{ start + 1 }} to {{ end }} of {{ filteredData.length }} entries
+      </div>
+      <div class="space-x-2">
+        <button
+          @click="currentPage--"
+          :disabled="currentPage === 1"
+          class="px-3 py-1 border rounded cursor-pointer hover:bg-gray-200 hover:disabled:bg-transparent disabled:cursor-auto disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          @click="currentPage++"
+          :disabled="end >= filteredData.length"
+          class="px-3 py-1 border rounded cursor-pointer hover:bg-gray-200 hover:disabled:bg-transparent disabled:cursor-auto disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped></style>
