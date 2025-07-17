@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #3b82f6; /* Soft Vivid Blue */
+  --color-background: #0f172a; /* Very Dark Navy-Blue-Black */
+  --color-surface: #1e293b; /* Slightly Lighter Dark Blue-Gray */
+  --color-text-primary: #e0e7ff; /* Light Bluish-White */
+  --color-text-secondary: #94a3b8; /* Muted Blue-Gray */
+  --color-accent: #f472b6; /* Gentle Pink */
+  --color-border: #334155; /* Soft Dark Gray-Blue */
+  --color-hover: #60a5fa; /* Light Sky Blue (hover/focus state) */
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+}
