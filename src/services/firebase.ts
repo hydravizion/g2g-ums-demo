@@ -42,14 +42,9 @@ export const updateUser = async (id: string, user: Partial<User>) => {
 export const deleteUser = async (user: User) => {
   const recycleCollection = collection(db, 'recycle')
   const nowTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+  const { id, ...userWithoutId } = user
   await addDoc(recycleCollection, {
-    name: user.name,
-    email: user.email,
-    dob: user.dob,
-    gender: user.gender,
-    picture: user.picture,
-    created_at: user.created_at,
-    updated_at: user.updated_at,
+    userWithoutId,
     deleted_at: nowTime,
   })
 
