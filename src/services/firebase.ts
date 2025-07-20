@@ -10,14 +10,12 @@ import {
   CollectionReference,
 } from 'firebase/firestore'
 import { User } from '../interfaces/user'
+import { format } from 'date-fns'
 
 const usersCollection = collection(db, 'users')
 
-export const createUser = async (
-  user: Omit<User, 'id'>,
-  collection: CollectionReference = usersCollection
-) => {
-  const docRef = await addDoc(collection, user)
+export const createUser = async (user: Omit<User, 'id'>) => {
+  const docRef = await addDoc(usersCollection, user)
   return { id: docRef.id, ...user }
 }
 
@@ -43,13 +41,18 @@ export const updateUser = async (id: string, user: Partial<User>) => {
 
 export const deleteUser = async (user: User) => {
   const recycleCollection = collection(db, 'recycle')
-  await createUser(user as Omit<User, 'id'>, recycleCollection)
+  const nowTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+  await addDoc(recycleCollection, {
+    name: user.name,
+    email: user.email,
+    dob: user.dob,
+    gender: user.gender,
+    picture: user.picture,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    deleted_at: nowTime,
+  })
 
   const docRef = doc(db, 'users', user.id)
   await deleteDoc(docRef)
 }
-
-// export const deleteUser = async (id: string) => {
-//   const docRef = doc(db, 'users', id)
-//   await deleteDoc(docRef)
-// }
