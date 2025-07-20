@@ -173,7 +173,7 @@
       )
     )
       try {
-        await deleteUser(user.id)
+        await deleteUser(user)
         router.go(0)
       } catch (error) {
         alert(error)
@@ -198,7 +198,7 @@
         <div class="relative">
           <select
             v-model="selectedFilterKey"
-            class="bg-gray-200 border border-gray-300 px-3 py-2 pr-8 rounded-full text-sm cursor-pointer appearance-none"
+            class="bg-gray-200 px-3 py-2 pr-8 rounded-full text-sm cursor-pointer appearance-none"
           >
             <option v-for="col in filterTypes" :key="col.key" :value="col">
               {{ col.label }}

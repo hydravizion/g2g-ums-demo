@@ -7,15 +7,17 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  setDoc,
-  serverTimestamp,
+  CollectionReference,
 } from 'firebase/firestore'
 import { User } from '../interfaces/user'
 
 const usersCollection = collection(db, 'users')
 
-export const createUser = async (user: Omit<User, 'id'>) => {
-  const docRef = await addDoc(usersCollection, user)
+export const createUser = async (
+  user: Omit<User, 'id'>,
+  collection: CollectionReference = usersCollection
+) => {
+  const docRef = await addDoc(collection, user)
   return { id: docRef.id, ...user }
 }
 
@@ -39,22 +41,11 @@ export const updateUser = async (id: string, user: Partial<User>) => {
   return { id, ...user }
 }
 
-export const deleteUser = async (id: string) => {
-  const docRef = doc(db, 'users', id)
+export const deleteUser = async (user: User) => {
+  const recycleCollection = collection(db, 'recycle')
+  await createUser(user as Omit<User, 'id'>, recycleCollection)
 
-  const snapshot = await getDoc(docRef)
-  if (!snapshot.exists()) {
-    throw new Error(`User with ID ${id} does not exist.`)
-  }
-
-  const userData = snapshot.data()
-
-  const trashRef = doc(db, 'trash', id)
-  await setDoc(trashRef, {
-    ...userData,
-    deleted_at: serverTimestamp(),
-  })
-
+  const docRef = doc(db, 'users', user.id)
   await deleteDoc(docRef)
 }
 
