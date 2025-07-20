@@ -1,5 +1,15 @@
 import { db } from '../firebase'
-import { collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  getDocs,
+  getDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { User } from '../interfaces/user'
 
 const usersCollection = collection(db, 'users')
@@ -31,5 +41,24 @@ export const updateUser = async (id: string, user: Partial<User>) => {
 
 export const deleteUser = async (id: string) => {
   const docRef = doc(db, 'users', id)
+
+  const snapshot = await getDoc(docRef)
+  if (!snapshot.exists()) {
+    throw new Error(`User with ID ${id} does not exist.`)
+  }
+
+  const userData = snapshot.data()
+
+  const trashRef = doc(db, 'trash', id)
+  await setDoc(trashRef, {
+    ...userData,
+    deleted_at: serverTimestamp(),
+  })
+
   await deleteDoc(docRef)
 }
+
+// export const deleteUser = async (id: string) => {
+//   const docRef = doc(db, 'users', id)
+//   await deleteDoc(docRef)
+// }

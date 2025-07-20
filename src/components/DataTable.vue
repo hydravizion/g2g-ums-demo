@@ -4,6 +4,12 @@
   import { format, formatDistanceToNow } from 'date-fns'
   import { exportToCSV, fallbackUrlCreator } from '../utils'
   import { deleteUser } from '../services/firebase'
+  import {
+    PencilSquareIcon,
+    TrashIcon,
+    ChevronRightIcon,
+    ChevronLeftIcon,
+  } from '@heroicons/vue/24/solid'
   import router from '../router/router'
 
   type Column = {
@@ -186,37 +192,72 @@
 <template>
   <div class="space-y-4">
     <!-- Search & Filter -->
-    <div class="flex justify-end items-center space-x-2">
+    <div class="flex flex-col gap-y-2 md:flex-row justify-end items-center space-x-2">
+      <div class="flex flex-row gap-x-2 items-center">
+        <label class="text-sm">Search by:</label>
+        <div class="relative">
+          <select
+            v-model="selectedFilterKey"
+            class="bg-gray-200 border border-gray-300 px-3 py-2 pr-8 rounded-full text-sm cursor-pointer appearance-none"
+          >
+            <option v-for="col in filterTypes" :key="col.key" :value="col">
+              {{ col.label }}
+            </option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-500">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <input
+          v-model="searchTerm"
+          type="text"
+          placeholder="Search..."
+          class="bg-gray-200 text-gray-600 px-3 py-2 rounded-full text-sm"
+        />
+      </div>
+
+      <div class="flex flex-row gap-x-2 items-center">
+        <label class="text-sm">Sort by:</label>
+
+        <div class="relative">
+          <select
+            v-model="selectedSortKey"
+            class="bg-gray-200 text-gray-600 px-3 py-2 pr-8 rounded-full text-sm cursor-pointer appearance-none"
+          >
+            <option v-for="col in sortTypes" :key="col.key + col.order" :value="col">
+              {{ col.label }}
+            </option>
+          </select>
+
+          <div class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-500">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       <div
-        class="border border-gray-400 px-5 py-2 rounded-full text-sm cursor-pointer mr-auto hover:bg-green-200 hover:border-green-500 transition"
+        class="bg-emerald-200 text-green-700 px-5 py-2 rounded-full text-sm cursor-pointer ml-auto hover:bg-green-700 hover:text-emerald-200 transition"
         @click="handleExportCSV"
       >
         Export To CSV
       </div>
-      <select
-        v-model="selectedSortKey"
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm mx-auto"
-      >
-        <option v-for="col in sortTypes" :key="col.key + col.order" :value="col">
-          {{ col.label }}
-        </option>
-      </select>
-      <label class="text-sm">Search by:</label>
-      <select
-        v-model="selectedFilterKey"
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
-      >
-        <option v-for="col in filterTypes" :key="col.key" :value="col">
-          {{ col.label }}
-        </option>
-      </select>
-
-      <input
-        v-model="searchTerm"
-        type="text"
-        placeholder="Search..."
-        class="border border-gray-400 px-3 py-2 rounded-full text-sm"
-      />
     </div>
     <div v-if="paginatedData.length === 0" class="flex justify-center items-center w-full h-20">
       <p class="my-auto">No Data available</p>
@@ -226,9 +267,18 @@
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="flex flex-row w-full items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
+        class="flex flex-row w-full md:items-center px-2 py-2 md:px-10 rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
       >
-        <div class="flex flex-col text-start px-6 flex-1 min-w-0">
+        <div
+          class="flex justify-center bg-gray-50 shrink-0 w-14 h-14 md:w-20 md:h-20 rounded-full overflow-hidden"
+        >
+          <img
+            :src="row.picture"
+            class="w-full h-full object-cover"
+            @error="fallbackUrlCreator($event, row.name)"
+          />
+        </div>
+        <div class="flex flex-col text-start flex-1 min-w-0">
           <div class="font-semibold text-lg truncate">{{ row.name }}</div>
           <div class="text-sm text-gray-500 truncate">{{ row.email }}</div>
           <div class="text-sm text-gray-500 truncate">Born at {{ row.dob }}</div>
@@ -239,18 +289,14 @@
           </div>
         </div>
 
-        <div class="shrink-0 w-1/6 text-sm text-blue-600 text-nowrap">
-          <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
-          <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
-        </div>
-
-        <div
-          class="flex items-center justify-center bg-gray-50 shrink-0 w-64 h-40 rounded-r-2xl overflow-hidden"
-        >
-          <img
-            :src="row.picture"
-            class="w-full h-full object-cover"
-            @error="fallbackUrlCreator($event, row.name)"
+        <div class="flex flex-row items-center gap-x-5 text-sm text-blue-600 text-nowrap mx-2">
+          <PencilSquareIcon
+            class="h-5 w-5 text-blue-600 hover:text-blue-400 cursor-pointer"
+            @click="onClickEdit(row.id)"
+          />
+          <TrashIcon
+            class="h-5 w-5 text-red-600 hover:text-red-400 cursor-pointer"
+            @click="onClickDelete(row)"
           />
         </div>
       </div>
@@ -259,7 +305,7 @@
     <!-- Grid View -->
     <div
       v-else-if="viewType === 'grid'"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
     >
       <div
         v-for="(row, index) in paginatedData"
@@ -276,12 +322,20 @@
         <div class="font-semibold text-lg truncate">{{ row.name }}</div>
         <div class="text-sm text-gray-500 truncate">{{ row.email }}</div>
         <div class="text-sm text-gray-500 truncate">Born at {{ row.dob }}</div>
-        <div class="text-sm text-gray-500 truncate">{{ row.gender }}</div>
+        <div class="text-sm text-gray-500">{{ row.gender }}</div>
         <div class="text-sm text-gray-500 mt-2">Created {{ timeAgo(row.created_at) }}</div>
         <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
-        <div class="mt-auto text-sm text-blue-600">
-          <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
-          <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
+        <div
+          class="flex flex-row mt-auto justify-center items-center gap-x-5 text-sm text-blue-600 text-nowrap mx-2"
+        >
+          <PencilSquareIcon
+            class="h-5 w-5 text-blue-600 hover:text-blue-400 cursor-pointer"
+            @click="onClickEdit(row.id)"
+          />
+          <TrashIcon
+            class="h-5 w-5 text-red-600 hover:text-red-400 cursor-pointer"
+            @click="onClickDelete(row)"
+          />
         </div>
       </div>
     </div>
@@ -291,21 +345,17 @@
       <div class="text-sm text-gray-600">
         Showing {{ start + 1 }} to {{ end }} of {{ filteredData.length }} entries
       </div>
-      <div class="space-x-2">
-        <button
+      <div class="flex flex-row gap-x-5">
+        <ChevronLeftIcon
           @click="currentPage--"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 border rounded cursor-pointer hover:bg-gray-200 hover:disabled:bg-transparent disabled:cursor-auto disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
+          class="h-6 w-6 cursor-pointer rounded-full hover:bg-indigo-200"
+          :class="{ 'pointer-events-none opacity-50': currentPage === 1 }"
+        />
+        <ChevronRightIcon
           @click="currentPage++"
-          :disabled="end >= filteredData.length"
-          class="px-3 py-1 border rounded cursor-pointer hover:bg-gray-200 hover:disabled:bg-transparent disabled:cursor-auto disabled:opacity-50"
-        >
-          Next
-        </button>
+          class="h-6 w-6 cursor-pointer rounded-full hover:bg-indigo-200"
+          :class="{ 'pointer-events-none opacity-50': end >= filteredData.length }"
+        />
       </div>
     </div>
   </div>

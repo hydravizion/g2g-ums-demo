@@ -21,7 +21,7 @@
   })
 </script>
 <template>
-  <div class="flex flex-col justify-center py-10 px-40 gap-y-5">
+  <div class="flex flex-col justify-center py-10 px-5 lg:px-40 gap-y-5">
     <p class="font-bold text-2xl">User List</p>
     <div
       class="flex flex-row w-full h-10 rounded-lg p-1 gap-x-2 justify-center items-center bg-gray-300"
