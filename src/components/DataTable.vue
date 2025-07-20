@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { User } from '../interfaces/user'
-  import { formatDistanceToNow } from 'date-fns'
-  import { exportToCSV } from '../utils'
+  import { format, formatDistanceToNow } from 'date-fns'
+  import { exportToCSV, fallbackUrlCreator } from '../utils'
   import { deleteUser } from '../services/firebase'
   import router from '../router/router'
 
@@ -95,6 +95,7 @@
   const selectedSortKey = ref<Column>(sortTypes.value[0])
   const selectedFilterKey = ref<Column>(filterTypes.value[0])
   const searchTerm = ref<string>('')
+  const fallbackImg = '/default-dp.png'
 
   const filteredData = computed(() => {
     if (!searchTerm.value || !selectedFilterKey.value) return props.data
@@ -151,7 +152,8 @@
   })
 
   function handleExportCSV() {
-    exportToCSV(sortedAndFilteredData.value, 'users.csv')
+    const dateTimeNow = format(new Date(), 'yyyy-MM-dd HH_mm_ss')
+    exportToCSV(sortedAndFilteredData.value, `UserList-${dateTimeNow}.csv`)
   }
 
   function onClickEdit(id: string) {
@@ -174,6 +176,11 @@
 
   const timeAgo = (dateString: string | Date): string => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+  }
+
+  const onImgError = (event: Event) => {
+    const target = event.target as HTMLImageElement
+    target.src = fallbackImg
   }
 </script>
 <template>
@@ -211,29 +218,40 @@
         class="border border-gray-400 px-3 py-2 rounded-full text-sm"
       />
     </div>
-
+    <div v-if="paginatedData.length === 0" class="flex justify-center items-center w-full h-20">
+      <p class="my-auto">No Data available</p>
+    </div>
     <!-- List View -->
-    <div v-if="viewType === 'list'" class="flex flex-col gap-y-6 overflow-x-auto rounded-md">
+    <div v-if="viewType === 'list'" class="flex flex-col max-w-full gap-y-6 rounded-md">
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="flex flex-row h-full justify-between items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
+        class="flex flex-row w-full items-center rounded-2xl border border-gray-200 shadow text-center gap-x-4 hover:bg-gray-100 transition"
       >
-        <div class="flex flex-col text-start px-10">
-          <div class="font-semibold text-lg">{{ row.name }}</div>
-          <div class="text-sm text-gray-500">{{ row.email }}</div>
-          <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
-          <div class="text-sm text-gray-500">{{ row.gender }}</div>
-          <div class="text-sm text-gray-500">Created {{ timeAgo(row.created_at) }}</div>
-          <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
+        <div class="flex flex-col text-start px-6 flex-1 min-w-0">
+          <div class="font-semibold text-lg truncate">{{ row.name }}</div>
+          <div class="text-sm text-gray-500 truncate">{{ row.email }}</div>
+          <div class="text-sm text-gray-500 truncate">Born at {{ row.dob }}</div>
+          <div class="text-sm text-gray-500 truncate">{{ row.gender }}</div>
+          <div class="text-sm text-gray-500 truncate">Created {{ timeAgo(row.created_at) }}</div>
+          <div class="text-sm text-gray-500 truncate">
+            Last updated {{ timeAgo(row.updated_at) }}
+          </div>
         </div>
 
-        <div class="text-sm text-blue-600">
+        <div class="shrink-0 w-1/6 text-sm text-blue-600 text-nowrap">
           <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
           <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>
-        <div class="shrink-0 w-64 h-40">
-          <img :src="row['picture']" class="w-full h-full rounded-r-2xl object-cover" />
+
+        <div
+          class="flex items-center justify-center bg-gray-50 shrink-0 w-64 h-40 rounded-r-2xl overflow-hidden"
+        >
+          <img
+            :src="row.picture"
+            class="w-full h-full object-cover"
+            @error="fallbackUrlCreator($event, row.name)"
+          />
         </div>
       </div>
     </div>
@@ -246,18 +264,22 @@
       <div
         v-for="(row, index) in paginatedData"
         :key="index"
-        class="text-center p-2 rounded-2xl hover:bg-gray-100 transition"
+        class="flex flex-col text-center p-2 border border-gray-200 shadow rounded-2xl hover:bg-gray-100 transition"
       >
-        <div class="bg-[#cdefff] p-5 rounded-2xl mb-2">
-          <img :src="row['picture']" class="mx-auto rounded-full h-full w-full object-cover" />
+        <div class="bg-gray-100 p-5 rounded-2xl mb-2">
+          <img
+            :src="row.picture"
+            class="mx-auto rounded-full h-full w-full object-cover"
+            @error="fallbackUrlCreator($event, row.name)"
+          />
         </div>
-        <div class="font-semibold text-lg">{{ row.name }}</div>
-        <div class="text-sm text-gray-500">{{ row.email }}</div>
-        <div class="text-sm text-gray-500">Born at {{ row.dob }}</div>
-        <div class="text-sm text-gray-500">{{ row.gender }}</div>
+        <div class="font-semibold text-lg truncate">{{ row.name }}</div>
+        <div class="text-sm text-gray-500 truncate">{{ row.email }}</div>
+        <div class="text-sm text-gray-500 truncate">Born at {{ row.dob }}</div>
+        <div class="text-sm text-gray-500 truncate">{{ row.gender }}</div>
         <div class="text-sm text-gray-500 mt-2">Created {{ timeAgo(row.created_at) }}</div>
         <div class="text-sm text-gray-500">Last updated {{ timeAgo(row.updated_at) }}</div>
-        <div class="mt-2 text-sm text-blue-600">
+        <div class="mt-auto text-sm text-blue-600">
           <a href="#" class="mr-2" @click="onClickEdit(row.id)">Edit</a>|
           <a href="#" class="ml-2 text-red-600" @click="onClickDelete(row)">Delete</a>
         </div>

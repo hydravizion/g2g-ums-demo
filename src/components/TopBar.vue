@@ -1,8 +1,15 @@
 <script setup lang="ts">
   import router from '../router/router'
+  import { useRoute } from 'vue-router'
+
+  const route = useRoute()
 
   const navigateTo = (route: string) => {
     router.push(route)
+  }
+
+  const isOnPage = (pathName: string) => {
+    return route.name === pathName
   }
 </script>
 <template>
@@ -13,12 +20,14 @@
     <div class="flex flex-row justify-end gap-x-10 px-10 w-1/2">
       <div
         class="flex justify-center items-center h-full font-medium text-sm cursor-pointer hover:underline"
+        :class="{ underline: isOnPage('DashBoard') }"
         @click="navigateTo('/dashboard')"
       >
         Dashboard
       </div>
       <div
         class="flex justify-center items-center h-full font-medium text-sm cursor-pointer hover:underline"
+        :class="{ underline: isOnPage('AddUser') }"
         @click="navigateTo('/add-user')"
       >
         Create
