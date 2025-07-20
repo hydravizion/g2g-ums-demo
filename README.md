@@ -1,5 +1,81 @@
-# Vue 3 + Vite
+# G2G UMS Demo
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A Vue 3 application powered by Vite, Firebase, Tailwind CSS, and Pinia.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## 🛠️ Tech Stack
+
+- [Vue 3](https://vuejs.org/)
+- [Vite](https://vitejs.dev/)
+- [Firebase](https://firebase.google.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Pinia](https://pinia.vuejs.org/)
+- [Heroicons](https://heroicons.com/)
+- [Material Web](https://github.com/material-components/material-web)
+
+---
+
+## 📦 Install Dependencies
+
+### Using `npm`
+```bash
+npm install
+```
+
+### Using `pnpm`
+```bash
+pnpm install
+```
+
+---
+
+## 🚀 Development
+
+### Start Dev Server
+
+```bash
+npm run dev
+# or
+pnpm dev
+```
+
+### Build for Production
+
+```bash
+npm run build
+# or
+pnpm build
+```
+
+### Preview Production Build
+
+```bash
+npm run preview
+# or
+pnpm preview
+```
+
+---
+
+## 📁 Project Structure
+
+```
+.
+├── src/             # Vue components & logic
+├── public/          # Static assets
+├── tailwind.config.js
+├── vite.config.js
+├── index.html
+└── ...
+```
+
+---
+
+## 🔒 Notes
+
+> Firebase rules are set to open for testing. Be sure to secure them before going to production.
+
+---
+
+## 📄 License
+
+MIT
