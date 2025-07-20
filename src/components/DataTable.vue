@@ -312,7 +312,7 @@
         :key="index"
         class="flex flex-col text-center p-2 border border-gray-200 shadow rounded-2xl hover:bg-gray-100 transition"
       >
-        <div class="bg-gray-100 p-5 rounded-2xl mb-2">
+        <div class="bg-gray-100 p-5 rounded-2xl mb-2 h-1/2">
           <img
             :src="row.picture"
             class="mx-auto rounded-full h-full w-full object-cover"
