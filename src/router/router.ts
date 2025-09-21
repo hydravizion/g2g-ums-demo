@@ -18,8 +18,8 @@ const routes: RouteRecordRaw[] = [
     props: true,
   },
   { path: '/recipe/:id', name: 'RecipeDetails', component: RecipePage, props: true },
-  { path: '/category', name: 'AddCategory', component: AddCategoryPage },
-  { path: '/recipe', name: 'AddRecipe', component: AddRecipePage },
+  // { path: '/category', name: 'AddCategory', component: AddCategoryPage },
+  // { path: '/recipe', name: 'AddRecipe', component: AddRecipePage },
 ]
 
 const router = createRouter({
