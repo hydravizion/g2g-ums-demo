@@ -7,47 +7,75 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  CollectionReference,
+  serverTimestamp,
 } from 'firebase/firestore'
-import { User } from '../interfaces/user'
-import { format } from 'date-fns'
+import { Recipe, Category } from '../interfaces/recipes'
 
-const usersCollection = collection(db, 'users')
+// Collections
+const recipesCollection = collection(db, 'recipes')
+const categoriesCollection = collection(db, 'categories')
 
-export const createUser = async (user: Omit<User, 'id'>) => {
-  const docRef = await addDoc(usersCollection, user)
-  return { id: docRef.id, ...user }
+// ✅ Recipe Services
+export const getAllRecipes = async (): Promise<Recipe[]> => {
+  const snapshot = await getDocs(recipesCollection)
+  return snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: d.data().createdAt?.toDate(),
+    updatedAt: d.data().updatedAt?.toDate(),
+  })) as Recipe[]
 }
 
-export const getAllUsers = async (): Promise<User[]> => {
-  const snapshot = await getDocs(usersCollection)
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as User)
+export const getRecipeById = async (id: string): Promise<Recipe | null> => {
+  const ref = doc(db, 'recipes', id)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return null
+  return {
+    id: snap.id,
+    ...snap.data(),
+    createdAt: snap.data().createdAt?.toDate(),
+    updatedAt: snap.data().updatedAt?.toDate(),
+  } as Recipe
 }
 
-export const getUserById = async (id: string): Promise<User | null> => {
-  const docRef = doc(db, 'users', id)
-  const snapshot = await getDoc(docRef)
-  if (snapshot.exists()) {
-    return { id: snapshot.id, ...snapshot.data() } as User
-  }
-  return null
+// ✅ Category Services
+export const getAllCategories = async (): Promise<Category[]> => {
+  const snapshot = await getDocs(categoriesCollection)
+  return snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: d.data().createdAt?.toDate(),
+  })) as Category[]
 }
 
-export const updateUser = async (id: string, user: Partial<User>) => {
-  const docRef = doc(db, 'users', id)
-  await updateDoc(docRef, user)
-  return { id, ...user }
+export const getRecipesByCategory = async (categoryId: string): Promise<Recipe[]> => {
+  const snapshot = await getDocs(recipesCollection)
+  return snapshot.docs
+    .map((d) => ({
+      id: d.id,
+      ...d.data(),
+      createdAt: d.data().createdAt?.toDate(),
+      updatedAt: d.data().updatedAt?.toDate(),
+    }))
+    .filter((r: any) => r.categoryId === categoryId) as Recipe[]
 }
 
-export const deleteUser = async (user: User) => {
-  const recycleCollection = collection(db, 'recycle')
-  const nowTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
-  const { id, ...userWithoutId } = user
-  await addDoc(recycleCollection, {
-    userWithoutId,
-    deleted_at: nowTime,
+export const createCategory = async (
+  category: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>
+) => {
+  const docRef = await addDoc(categoriesCollection, {
+    ...category,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   })
+  return { id: docRef.id, ...category }
+}
 
-  const docRef = doc(db, 'users', user.id)
-  await deleteDoc(docRef)
+export const createRecipe = async (recipe: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const docRef = await addDoc(recipesCollection, {
+    ...recipe,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return { id: docRef.id, ...recipe }
 }
